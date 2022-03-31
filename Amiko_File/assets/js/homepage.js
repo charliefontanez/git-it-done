@@ -1,5 +1,6 @@
 var repoContainerEl = document.querySelector("#repos-container");
 var repoSearchTerm = document.querySelector("#repo-search-term");
+var languageButtonsEl = document.getElementById("language-buttons");
 
 var getUserRepos = function(user) {
   var apiUrl = "https://api.github.com/users/" + user + "/repos";
@@ -34,7 +35,7 @@ var formSubmitHandler = function(event) {
   console.log(event);
 };
 
-displayRepos = function(repos, searchTerm) {
+var displayRepos = function(repos, searchTerm) {
   if (repos.length === 0) {
     repoContainerEl.textContent = "No repositories found.";
     return;
@@ -67,8 +68,9 @@ displayRepos = function(repos, searchTerm) {
     // check if current repo has issues or not
     if (repos[i].open_issues_count > 0) {
       statusEl.innerHTML = 
-        "<i class='fas fa-times status-icon icon-danger'></i>" + repos[i].open_issues_count + " issue(s)";
-    } else {
+      "<i class='fas fa-times status-icon icon-danger'></i>" + repos[i].open_issues_count + " issue(s)";
+    } 
+    else {
       statusEl.innerHTML = "<i class='fas fa-check-square status-icon icon-success'></i>";
     }
 
@@ -77,8 +79,30 @@ displayRepos = function(repos, searchTerm) {
     // append container to the dom
     repoContainerEl.appendChild(repoEl);
   }
+}
 
+var getFeaturedRepos = function(language) {
+  var apiUrl = "https://api.github.com/search/repositories?q=" + language + "+is:featured&sort=help-wanted-issues";
 
+  fetch(apiUrl).then(function(response) {
+    if (response.ok) {
+      console.log(response);
+      response.json().then(function(data) {
+        displayRepos(data.items, language);
+      });
+    }
+    else {
+      alert("Error: Github User Not Found");
+    }
+  });
+}
+
+var buttonClickHandler = function(event) {
+  var language = event.target.getAttribute("data-language");
+  if (language) {
+    getFeaturedRepos(language);
+    repoContainerEl.textContent = "";
+  }
 }
 
 var userFormEl = document.querySelector("#user-form");
@@ -86,6 +110,7 @@ var nameInputEl = document.querySelector("#username");
 
 
 userFormEl.addEventListener("submit", formSubmitHandler);
+languageButtonsEl.addEventListener("click", buttonClickHandler);
 
 
 // getUserRepos("microsoft");
